@@ -1,0 +1,6 @@
+$pdf_mode = 1;
+
+# The following FORCES the standard LaTeX-Workshop's default (latexmk)
+# (pdf) recipe to use lualatex
+
+$pdflatex = "lualatex -jobname %B %O \\\\input{preamble} \\\\input{%B} \\\\input{postamble}";

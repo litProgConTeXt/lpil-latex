@@ -1,0 +1,30 @@
+\NeedsTeXFormat{LaTeX2e}[2023/06/01]
+
+\ProvidesPackage{lpil}[2023/07/27 Literate Programming in LaTeX]
+
+\directlua{lpil = require("lpil")}
+
+\RequirePackage{verbatim}
+\RequirePackage{fancyvrb}
+\RequirePackage{color}
+
+\newcommand{\newCodeType}[2]{\directlua{lpil.newCodeType('#1','#2')}}
+
+\newenvironment{lpilBuild}[2]{
+We describe how to build {#1} using {#2}
+\par
+\begin{tabular}{ c c c }
+someThing & some thing & some thing else \\
+}{
+\end{tabular}
+\par
+This concludes the description.
+}
+
+\newcommand{\lpilRequires}[2]{requires&#1&#2\\}
+\newcommand{\lpilCreates}[2]{creates&#1&#2\\}
+
+%see https://tex.stackexchange.com/questions/98203/can-i-test-if-a-file-exists
+%\IfFileExists{filename}{true-branch}{false-branch}
+
+\endinput

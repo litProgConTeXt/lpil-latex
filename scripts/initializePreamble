@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# This bash script creates an initial LPiL preamble for use in a new
+# project
+
+if [ "$#" -lt 1 ] ; then
+	echo "Usage: createPreamble <<path to project directory>>"
+	exit 1
+fi
+
+copyTemplate() {
+  if [ -f "$1/$2" ] ; then
+    echo $2 already exists in your project
+    echo ... not over writing it...
+  else
+    echo copying templates/$2 to $1
+    cp templates/$2 $1
+  fi
+}
+
+echo ""
+echo LPiL: initializing project $1
+echo ""
+copyTemplate $1 preamble.tex
+echo ""
+copyTemplate $1 postamble.tex
+echo ""
+copyTemplate $1 latexmkrc
+echo ""

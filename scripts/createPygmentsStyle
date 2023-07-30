@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# This bash script generates the pygments LaTeX style definitions for a
+# given pygments style
+
+if [ "$#" -lt 2 ] ; then
+        echo "Usage: createPreamble <<pygmentStyleName>> <<pathToProjectDirectory>>"
+        exit 1
+fi
+
+styleName=$1
+dirPath=$2
+
+echo ""
+echo Creating the pygments LaTeX style file for $styleName
+echo in the directory $dirPath
+echo ""
+
+cd $dirPath
+echo % Pygments style: $styleName            >  pygments.sty
+pygmentize -f latex -S $styleName -a .syntax >> pygments.sty
+
+echo ""
