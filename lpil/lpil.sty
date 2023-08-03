@@ -2,11 +2,33 @@
 
 \ProvidesPackage{lpil}[2023/07/27 Literate Programming in LaTeX]
 
-\directlua{lpil = require("lpil")}
-
 \RequirePackage{verbatim}
 \RequirePackage{fancyvrb}
 \RequirePackage{color}
+\RequirePackage{graphicx}
+
+\directlua{lpil = require("lpil")}
+\directlua{lpil.initialize()}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% include LPiL metafun based graphics
+
+\newcommand{\includeLpilDiagram}[1]{\includegraphics{\latexBuildDir/#1_v1_5}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Track the input files (using Lua to provide an "input file" stack)
+
+\newcommand{\pushInputFile}[1]{\directlua{lpil.pushInputFile('#1')}}
+\newcommand{\popInputFile}{\directlua{lpil.popInputFile()}}
+\newcommand{\currentInputFile}{\directlua{lpil.currentInputFile()}}
+
+\let\origInput=\input
+\def\input#1{\pushInputFile{#1}\origInput{#1}\popInputFile}
+
+\let\origInclude=\include
+\def\include#1{\def\pushInputFile{#1}\origInclude{#1}\popInputFile}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\newCodeType}[2]{\directlua{lpil.newCodeType('#1','#2')}}
 
