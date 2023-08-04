@@ -119,9 +119,9 @@ function lpilMod.defineLoadPygmentedCode(codeType, baseName)
 
   fileName = {}
   tInsert(fileName, baseName)
-  tInsert(fileName, ".")
+  tInsert(fileName, "-")
   tInsert(fileName, curFilePath)
-  tInsert(fileName, ".c")
+  tInsert(fileName, "-c")
   tInsert(fileName, sFormat("%05d", curFile[baseName]))
   tInsert(fileName, ".pygmented.tex")
   fileName = tConcat(fileName, '')
