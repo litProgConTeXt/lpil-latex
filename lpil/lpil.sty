@@ -2,10 +2,24 @@
 
 \ProvidesPackage{lpil}[2023/07/27 Literate Programming in LaTeX]
 
+\RequirePackage{amsfonts}
+\RequirePackage{amsmath}
+\RequirePackage{amsthm}
 \RequirePackage{verbatim}
 \RequirePackage{fancyvrb}
 \RequirePackage{color}
 \RequirePackage{graphicx}
+
+\newtheorem{definition}{Definition}
+
+\newcommand{\stbFam}[1]{\ensuremath{\mathcal #1}}
+\newcommand{\config}[1]{\ensuremath{\mathcal C(#1)}}
+\newcommand{\TODO}[1]{\bf TODO: #1}
+\newcommand{\define}[2]{{\bf #2}\label{#1}}
+\newcommand{\tuple}[1]{\ensuremath{(#1)}}
+\newcommand{\set}[1]{\ensuremath{\{#1\}}}
+\newcommand{\suchThat}{\ensuremath{|}}
+\newcommand{\union}{\ensuremath{\cup}}
 
 \directlua{lpil = require("lpil")}
 \directlua{lpil.initialize()}
