@@ -2,9 +2,11 @@
 
 \ProvidesPackage{lpil}[2023/07/27 Literate Programming in LaTeX]
 
+\RequirePackage{ifthen}
 \RequirePackage{amsfonts}
 \RequirePackage{amsmath}
 \RequirePackage{amsthm}
+\RequirePackage{makeidx}
 \RequirePackage{verbatim}
 \RequirePackage{fancyvrb}
 \RequirePackage{color}
@@ -15,7 +17,7 @@
 \newcommand{\stbFam}[1]{\ensuremath{\mathcal #1}}
 \newcommand{\config}[1]{\ensuremath{\mathcal C(#1)}}
 \newcommand{\TODO}[1]{\bf TODO: #1}
-\newcommand{\define}[2]{{\bf #2}\label{#1}}
+\newcommand{\define}[2]{{\bf #2}\index{#1|textbf}}
 \newcommand{\tuple}[1]{\ensuremath{(#1)}}
 \newcommand{\set}[1]{\ensuremath{\{#1\}}}
 \newcommand{\suchThat}{\ensuremath{|}}
@@ -23,6 +25,37 @@
 
 \directlua{lpil = require("lpil")}
 \directlua{lpil.initialize()}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% track the document structure the LPiL way
+\newcommand{\lpilStoreSection}[2]{
+  \def\lpilSection{#1}\def\lpilLabel{#2}
+}
+\newcommand{\doLpilSection}[2][]{
+  \typeout{\lpilSection - \lpilLabel - #1 - #2}
+  \ifthenelse{\equal{#1}{}}{
+    \ifthenelse{\equal{\lpilSection}{title}}{
+      \title{#2}\label{\lpilLabel}
+      \def\lpilShortTitle{#2}
+    }{
+      \csname \lpilSection \endcsname {#2}\label{\lpilLabel}
+    }
+  }{
+    \ifthenelse{\equal{\lpilSection}{title}}{
+      \title{#2}\label{\lpilLabel}
+      \def\lpilShortTitle{#1}
+    }{
+      \csname \lpilSection \endcsname [#1]{#2}\label{\lpilLabel}
+    }
+  }
+}
+\newcommand{\lpilTitle}[1]{\lpilStoreSection{title}{#1}\doLpilSection}
+\newcommand{\lpilPart}[1]{\lpilStoreSection{part}{#1}\doLpilSection}
+\newcommand{\lpilChapter}[1]{\lpilStoreSection{chapter}{#1}\doLpilSection}
+\newcommand{\lpilSubSection}[1]{\lpilStoreSection{subsection}{#1}\doLpilSection}
+\newcommand{\lpilSubSubSection}[1]{\lpilStoreSection{subsubsection}{#1}\doLpilSection}
+\newcommand{\lpilParagraph}[1]{\lpilStoreSection{paragraph}{#1}\doLpilSection}
+\newcommand{\lpilSubParagraph}[1]{\lpilStoreSection{subparagraph}{#1}\doLpilSection}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % include LPiL metafun based graphics
