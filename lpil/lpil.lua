@@ -37,8 +37,9 @@ end
 -- track input/output files
 
 function lpilMod.addDependentFile(aFilePath, codeType)
-  lpilMod.deps = lpilMod.deps or {}
   codeType = codeType or 'tex'
+  texio.write("\nAdding dependent file: "..aFilePath.." with codeType: "..codeType.."\n")
+  lpilMod.deps = lpilMod.deps or {}
   lpilMod.deps[aFilePath] = codeType
 end
 
