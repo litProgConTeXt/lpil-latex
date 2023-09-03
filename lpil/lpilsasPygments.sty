@@ -1,0 +1,94 @@
+% Pygments style: sas
+\ProvidesPackage{lpilsasPygments}
+
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\@namedef{PY@tok@w}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\@namedef{PY@tok@c}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.00,0.53,0.00}{##1}}}
+\@namedef{PY@tok@s}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@m}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.52,0.33}{##1}}}
+\@namedef{PY@tok@x}{\def\PY@bc##1{{\setlength{\fboxsep}{0pt}\colorbox[rgb]{1.00,1.00,0.88}{\strut ##1}}}}
+\@namedef{PY@tok@k}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@kr}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.21,0.21,0.50}{##1}}}
+\@namedef{PY@tok@kc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@nb}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@nf}{\let\PY@bf=\textbf\let\PY@it=\textit}
+\@namedef{PY@tok@nv}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@g}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@ge}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.53,0.00}{##1}}}
+\@namedef{PY@tok@gr}{\def\PY@tc##1{\textcolor[rgb]{0.83,0.01,0.01}{##1}}}
+\@namedef{PY@tok@err}{\def\PY@tc##1{\textcolor[rgb]{0.65,0.09,0.09}{##1}}\def\PY@bc##1{{\setlength{\fboxsep}{0pt}\colorbox[rgb]{0.89,0.82,0.82}{\strut ##1}}}}
+\@namedef{PY@tok@kd}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@kn}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@kp}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@kt}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@bp}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@fm}{\let\PY@bf=\textbf\let\PY@it=\textit}
+\@namedef{PY@tok@vc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@vg}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@vi}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@vm}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@sa}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@sb}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@sc}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@dl}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@sd}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@s2}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@se}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@sh}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@si}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@sx}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@sr}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@s1}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@ss}{\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@mb}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.52,0.33}{##1}}}
+\@namedef{PY@tok@mf}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.52,0.33}{##1}}}
+\@namedef{PY@tok@mh}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.52,0.33}{##1}}}
+\@namedef{PY@tok@mi}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.52,0.33}{##1}}}
+\@namedef{PY@tok@il}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.52,0.33}{##1}}}
+\@namedef{PY@tok@mo}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.17,0.52,0.33}{##1}}}
+\@namedef{PY@tok@ch}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.00,0.53,0.00}{##1}}}
+\@namedef{PY@tok@cm}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.00,0.53,0.00}{##1}}}
+\@namedef{PY@tok@cp}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.00,0.53,0.00}{##1}}}
+\@namedef{PY@tok@cpf}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.00,0.53,0.00}{##1}}}
+\@namedef{PY@tok@c1}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.00,0.53,0.00}{##1}}}
+\@namedef{PY@tok@cs}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.00,0.53,0.00}{##1}}}
+\@namedef{PY@tok@gd}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@gh}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@gi}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@go}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@gp}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@gs}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@gu}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+\@namedef{PY@tok@gt}{\def\PY@tc##1{\textcolor[rgb]{0.17,0.17,1.00}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+

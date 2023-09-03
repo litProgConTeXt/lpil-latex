@@ -1,7 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}[2023/06/01]
 
 \ProvidesPackage{lpil}[2023/07/27 Literate Programming in LaTeX]
-
 \RequirePackage{ifthen}
 \RequirePackage{amsfonts}
 \RequirePackage{amsmath}
@@ -12,6 +11,11 @@
 \RequirePackage{color}
 \RequirePackage{graphicx}
 \RequirePackage{hyperref}
+
+% at the moment we have ONLY one Pygments style
+% if/when we want more... we could use an option
+% or have the user load this themselves...
+\RequirePackage{lpilsasPygments}
 
 \newtheorem{definition}{Definition}
 
