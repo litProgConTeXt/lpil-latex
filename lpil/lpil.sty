@@ -6,11 +6,12 @@
 \RequirePackage{amsfonts}
 \RequirePackage{amsmath}
 \RequirePackage{amsthm}
-\RequirePackage{makeidx}
+%\RequirePackage{makeidx} %% (already included with amsart/amsbook)
 \RequirePackage{verbatim}
 \RequirePackage{fancyvrb}
 \RequirePackage{color}
 \RequirePackage{graphicx}
+\RequirePackage{hyperref}
 
 \newtheorem{definition}{Definition}
 
@@ -27,25 +28,38 @@
 \directlua{lpil.initialize()}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% track the document dependencies
+\let\lpilOldInput=\input
+\def\input#1{
+  \directlua{lpil.addDependentFile('#1')}
+  \lpilOldInput{#1}
+}
+\let\lpilOldInclude=\include
+\def\include#1{
+  \directlua{lpil.addDependentFile('#1')}
+  \lpilOldInclude{#1}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % track the document structure the LPiL way
 \newcommand{\lpilStoreSection}[2]{
-  \def\lpilSection{#1}\def\lpilLabel{#2}
+  \def\lpilSectionType{#1}\def\lpilLabelID{#2}
 }
 \newcommand{\doLpilSection}[2][]{
-  \typeout{\lpilSection - \lpilLabel - #1 - #2}
+  \typeout{LPiL section cmd: type[\lpilSectionType] label[\lpilLabelID] short[#1] long[#2]}
   \ifthenelse{\equal{#1}{}}{
-    \ifthenelse{\equal{\lpilSection}{title}}{
-      \title{#2}\label{\lpilLabel}
+    \ifthenelse{\equal{\lpilSectionType}{title}}{
+      \title{#2}\label{\lpilLabelID}
       \def\lpilShortTitle{#2}
     }{
-      \csname \lpilSection \endcsname {#2}\label{\lpilLabel}
+      \csname \lpilSectionType \endcsname {#2}\label{\lpilLabelID}
     }
   }{
-    \ifthenelse{\equal{\lpilSection}{title}}{
-      \title{#2}\label{\lpilLabel}
+    \ifthenelse{\equal{\lpilSectionType}{title}}{
+      \title{#2}\label{\lpilLabelID}
       \def\lpilShortTitle{#1}
     }{
-      \csname \lpilSection \endcsname [#1]{#2}\label{\lpilLabel}
+      \csname \lpilSectionType \endcsname [#1]{#2}\label{\lpilLabelID}
     }
   }
 }
@@ -61,7 +75,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % include LPiL metafun based graphics
 
-\newcommand{\includeLpilDiagram}[1]{\includegraphics{\latexBuildDir/#1_v1_5}}
+\newcommand{\includeLpilDiagram}[1]{
+  \directlua{lpil.addDependentFile('#1', 'metaFun')}
+  \includegraphics{\latexBuildDir/#1_v1_5}
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Track the input files (using Lua to provide an "input file" stack)
@@ -96,5 +113,7 @@ This concludes the description.
 
 %see https://tex.stackexchange.com/questions/98203/can-i-test-if-a-file-exists
 %\IfFileExists{filename}{true-branch}{false-branch}
+
+\newcommand{\lpilSaveDependents}{\directlua{lpil.writeDependentFiles()}}
 
 \endinput

@@ -8,19 +8,24 @@ local sSub    = string.sub
 local sGSub   = string.gsub
 local sFormat = string.format
 
+require("lualibs-util-jsn")
+local json    = utilities.json
+
 -------------------------------------------------------------------------
 -- initialize this module
 
 function lpilMod.initialize()
   local homeDir = os.getenv("HOME")
   lpilMod.config = dofile(homeDir..'/.config/cfdoit/config.lua')
-
+  
+  lpilMod.latexDir = '.'
   if (lpilMod.config['build']) then
     if (lpilMod.config['build']['latexDir']) then
       local latexDir = lpilMod.config['build']['latexDir']
+      lpilMod.latexDir = latexDir
       texio.write("\nSetting LaTeXDir = "..latexDir.."\n")
       tex.print("\\def\\latexBuildDir{"..latexDir.."}")
-    else 
+    else
       tex.print("\\def\\latexBuildDir{.}")
     end
   else
@@ -28,6 +33,31 @@ function lpilMod.initialize()
   end
 end
 
+-------------------------------------------------------------------------
+-- track input/output files
+
+function lpilMod.addDependentFile(aFilePath, codeType)
+  lpilMod.deps = lpilMod.deps or {}
+  codeType = codeType or 'tex'
+  lpilMod.deps[aFilePath] = codeType
+end
+
+function addPygmentsOptions(aCodeType, someCodeOptions)
+  lpilMod.pygments = lpilMod.pygments or {}
+  lpilMod.pygments[aCodeType] = someCodeOptions
+end
+
+function lpilMod.writeDependentFiles()
+  local jsonStruct       = { }
+  lpilMod.pygments       = lpilMod.pygments or {}
+  jsonStruct['pygments'] = lpilMod.pygments
+  lpilMod.deps           = lpilMod.deps or {}
+  jsonStruct['deps']     = lpilMod.deps
+  local jsonStr = json.tostring(jsonStruct)
+  local jsonFile = io.open(lpilMod.latexDir..'/'..tex.jobname..'.deps.json', 'w')
+  jsonFile:write(jsonStr)
+  jsonFile:close()
+end
 -------------------------------------------------------------------------
 -- Provide a simple stack of "input files"
 
@@ -82,15 +112,18 @@ end
 function lpilMod.newCodeType(codeType, pygmentOpts)
   texio.write("\nnewCodeType("..codeType..","..pygmentOpts..")\n")
 
+  addPygmentsOptions(codeType, pygmentOpts)
+
   texCmd = {}
   tInsert(texCmd, "\\newenvironment{lpil:")
   tInsert(texCmd, codeType)
   tInsert(texCmd, "}[1]{")
   tInsert(texCmd, "\\directlua{lpil.defineLoadPygmentedCode('")
   tInsert(texCmd, codeType)
-  tInsert(texCmd, "','#1')}\\begingroup\\comment}")
-  tInsert(texCmd, "{\\endcomment\\endgroup\\loadPygmentedCode}")
+  tInsert(texCmd, "','#1')}\\begingroup\\filecontents[noheader,overwrite]\\pygmentedCodeFileName}")
+  tInsert(texCmd, "{\\endfilecontents\\endgroup\\loadPygmentedCode}")
   texCmd = tConcat(texCmd, '')
+  texio.write("\nnewCodeTypeCMD("..texCmd..")")
 
   tex.print(texCmd)
   --return texCmd
@@ -121,25 +154,35 @@ function lpilMod.defineLoadPygmentedCode(codeType, baseName)
   tInsert(fileName, baseName)
   tInsert(fileName, "-")
   tInsert(fileName, curFilePath)
+  tInsert(fileName, "-")
+  tInsert(fileName, codeType)
   tInsert(fileName, "-c")
   tInsert(fileName, sFormat("%05d", curFile[baseName]))
   tInsert(fileName, ".pygmented.tex")
   fileName = tConcat(fileName, '')
   texio.write("\n  will load file: "..fileName.."\n")
+  lpilMod.addDependentFile(lpilMod.latexDir..'/'..fileName, 'pygments-'..codeType)
+  safeBaseName = sGSub(baseName, "_", "\\_")
+  texio.write("  safe baseName: ["..safeBaseName.."]\n")
 
   texCmd = {}
+  tInsert(texCmd, "\\def\\pygmentedCodeFileName{")
+  tInsert(texCmd, fileName)
+  tInsert(texCmd, ".out}")
   tInsert(texCmd, "\\def\\loadPygmentedCode{\\IfFileExists{")
   tInsert(texCmd, fileName)
-  tInsert(texCmd, "}{\\input{")
+  tInsert(texCmd, "}{\\lpilOldInput{")
   tInsert(texCmd, fileName)
   tInsert(texCmd, "}}{\\par \\noindent \\fbox{ Pygmented ")
   tInsert(texCmd, codeType)
   tInsert(texCmd, " code for chunk ")
   tInsert(texCmd, sFormat("%d", curFile[baseName]))
   tInsert(texCmd, " of ")
-  tInsert(texCmd, baseName)
+  --tInsert(texCmd, " sillyBaseName ")
+  tInsert(texCmd, safeBaseName)
   tInsert(texCmd, " does not exist} \\par }}")
   texCmd = tConcat(texCmd, '')
+  texio.write("\ndefineLoadPygmentedCodeCMD("..texCmd..")")
 
   tex.print(texCmd)
   --return texCmd
