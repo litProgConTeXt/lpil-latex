@@ -32,19 +32,6 @@
 \directlua{lpil.initialize()}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% track the document dependencies
-\let\lpilOldInput=\input
-\def\input#1{
-  \directlua{lpil.addDependentFile('#1')}
-  \lpilOldInput{#1}
-}
-\let\lpilOldInclude=\include
-\def\include#1{
-  \directlua{lpil.addDependentFile('#1')}
-  \lpilOldInclude{#1}
-}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % track the document structure the LPiL way
 \newcommand{\lpilStoreSection}[2]{
   \def\lpilSectionType{#1}\def\lpilLabelID{#2}
@@ -80,22 +67,34 @@
 % include LPiL metafun based graphics
 
 \newcommand{\includeLpilDiagram}[1]{
-  \directlua{lpil.addDependentFile('#1', 'metaFun')}
-  \includegraphics{\latexBuildDir/#1_v1_5}
+  \directlua{lpil.addDependentFile('\lpilCurrentDirectory#1', 'metaFun')}
+  \includegraphics{\latexBuildDir/\lpilCurrentDirectory#1_v1_5}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Track the input files (using Lua to provide an "input file" stack)
+%% AND track the document dependencies
 
-\newcommand{\pushInputFile}[1]{\directlua{lpil.pushInputFile('#1')}}
-\newcommand{\popInputFile}{\directlua{lpil.popInputFile()}}
-\newcommand{\currentInputFile}{\directlua{lpil.currentInputFile()}}
+\newcommand{\lpilPushInputFile}[1]{\directlua{lpil.pushInputFile('#1')}}
+\newcommand{\lpilPopInputFile}{\directlua{lpil.popInputFile()}}
+\newcommand{\lpilCurrentFile}{\directlua{lpil.currentFile()}}
+\newcommand{\lpilCurrentDirectory}{\directlua{lpil.currentDirectory()}}
 
-\let\origInput=\input
-\def\input#1{\pushInputFile{#1}\origInput{#1}\popInputFile}
+\let\lpilOrigInput=\input
+\def\input#1{
+  \lpilPushInputFile{#1}
+  \directlua{lpil.addDependentFile('#1')}
+  \lpilOrigInput{#1}
+  \lpilPopInputFile
+}
 
-\let\origInclude=\include
-\def\include#1{\def\pushInputFile{#1}\origInclude{#1}\popInputFile}
+\let\lpilOrigInclude=\include
+\def\include#1{
+  \lpilPushInputFile{#1}
+  \directlua{lpil.addDependentFile('#1')}
+  \lpilOrigInclude{#1}
+  \lpilPopInputFile
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

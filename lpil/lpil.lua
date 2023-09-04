@@ -38,7 +38,7 @@ end
 
 function lpilMod.addDependentFile(aFilePath, codeType)
   codeType = codeType or 'tex'
-  texio.write("\nAdding dependent file: "..aFilePath.." with codeType: "..codeType.."\n")
+  texio.write("\nAdding dependent file: ["..aFilePath.."] with codeType: "..codeType.."\n")
   lpilMod.deps = lpilMod.deps or {}
   lpilMod.deps[aFilePath] = codeType
 end
@@ -68,18 +68,69 @@ end
 
 local inputFiles = {}
 
+function lpilMod.showInputFiles()
+  texio.write("\n-----------------------------\n")
+  for _, aFile in ipairs(inputFiles) do
+    texio.write("  "..aFile.." "..getParentDir(aFile).."\n")
+  end
+  texio.write("-----------------------------\n")
+end
+
+function getSep()
+  return sSub(package.config, 1, 1)
+end
+
+function getParentDir(aPath)
+  aPath = aPath or ""
+  if aPath:sub(#aPath) =="/" then
+    aPath = aPath:sub(1,-2)
+  end
+  sep = getSep()
+  parentDir = aPath:match("(.*"..sep..")") or ""
+  --texio.write("getParentDir: ["..aPath.."] -> ["..parentDir.."]\n")
+  return parentDir
+end
+
+function mkdirs(aPath)
+  --texio.write("mkdirs ["..aPath.."]\n")
+  local parentDir = getParentDir(aPath)
+  if parentDir:sub(#parentDir) =="/" then
+    parentDir = parentDir:sub(1,-2)
+  end
+  if parentDir ~= "" then
+    mkdirs(parentDir)
+    --texio.write("parentDir: ["..parentDir.."] type: "..type(parentDir).."\n")
+    --texio.write("lfs.mkdir("..parentDir..") ["..aPath.."]\n")
+    local ok, err = lfs.mkdir(parentDir)
+    if not ok then
+      if err ~= "File exists" then
+        texio.write("lfs.mkdir error: ["..err.."]\n")
+      end
+    end
+  end
+  --texio.write("mkdirs ["..aPath.."]\n")
+end
+
 function lpilMod.topInputFile()
   inputFile = "unknown"
   if 0 < #inputFiles then
     inputFile = inputFiles[#inputFiles]
   end
-  --texio.write("\ncurrentInputFile: "..inputFile.."\n")
+  --texio.write("\ncurrentInputFile: ["..inputFile.."]\n")
+  --lpilMod.showInputFiles()
   return inputFile
-
 end
 
-function lpilMod.currentInputFile()
+function lpilMod.currentFile()
+  --texio.write("\ncurrentFile")
+  --lpilMod.showInputFiles()
   tex.print(lpilMod.topInputFile)
+end
+
+function lpilMod.currentDirectory()
+  --texio.write("\ncurrentDirectory")
+  --lpilMod.showInputFiles()
+  tex.print(getParentDir(lpilMod.topInputFile()))
 end
 
 function lpilMod.pushInputFile(aPath)
@@ -94,15 +145,17 @@ function lpilMod.pushInputFile(aPath)
     aPath = aPath..'.tex'
   end
 
-  --texio.write("\npushInputFile: "..aPath.."\n")
   tInsert(inputFiles, aPath)
+  --texio.write("pushInputFile: "..aPath.."\n")
+  --lpilMod.showInputFiles()
 end
 
 function lpilMod.popInputFile()
-  --texio.write("\npopInputFile\n")
   tRemove(inputFiles, aPath)
-  --lpilMod.topInputFile()
+  --texio.write("popInputFile\n")
+  --lpilMod.showInputFiles()
 end
+
 -------------------------------------------------------------------------
 
 -- Note the ordering of the "extra" \\begingroup / \\endgroup pair...
@@ -151,35 +204,48 @@ function lpilMod.defineLoadPygmentedCode(codeType, baseName)
     curFile[baseName] = curFile[baseName] + 1
   end
 
-  fileName = {}
-  tInsert(fileName, baseName)
-  tInsert(fileName, "-")
-  tInsert(fileName, curFilePath)
-  tInsert(fileName, "-")
-  tInsert(fileName, codeType)
-  tInsert(fileName, "-c")
-  tInsert(fileName, sFormat("%05d", curFile[baseName]))
-  tInsert(fileName, ".pygmented.tex")
-  fileName = tConcat(fileName, '')
-  texio.write("\n  will load file: "..fileName.."\n")
-  lpilMod.addDependentFile(lpilMod.latexDir..'/'..fileName, 'pygments-'..codeType)
+  writeFileName = {}
+  tInsert(writeFileName, getParentDir(lpilMod.topInputFile()))
+  --tInsert(fileName, getSep())
+  tInsert(writeFileName, baseName)
+  tInsert(writeFileName, "-")
+  tInsert(writeFileName, curFilePath)
+  tInsert(writeFileName, "-")
+  tInsert(writeFileName, codeType)
+  tInsert(writeFileName, "-c")
+  tInsert(writeFileName, sFormat("%05d", curFile[baseName]))
+  tInsert(writeFileName, ".pygmented.tex")
+  writeFileName = tConcat(writeFileName, '')
+
+  readFileName = {}
+  tInsert(readFileName, lpilMod.latexDir)
+  tInsert(readFileName, getSep())
+  tInsert(readFileName, writeFileName)
+  readFileName = tConcat(readFileName, '')
+
+  texio.write("\n  will load file: "..readFileName.."\n")
+
   safeBaseName = sGSub(baseName, "_", "\\_")
   texio.write("  safe baseName: ["..safeBaseName.."]\n")
+  
+  -- make sure all required directories exist
+  mkdirs(readFileName) 
+  
+  lpilMod.addDependentFile(readFileName, 'pygments-'..codeType)
 
   texCmd = {}
   tInsert(texCmd, "\\def\\pygmentedCodeFileName{")
-  tInsert(texCmd, fileName)
+  tInsert(texCmd, writeFileName)
   tInsert(texCmd, ".out}")
   tInsert(texCmd, "\\def\\loadPygmentedCode{\\IfFileExists{")
-  tInsert(texCmd, fileName)
-  tInsert(texCmd, "}{\\lpilOldInput{")
-  tInsert(texCmd, fileName)
+  tInsert(texCmd, readFileName)
+  tInsert(texCmd, "}{\\lpilOrigInput{")
+  tInsert(texCmd, readFileName)
   tInsert(texCmd, "}}{\\par \\noindent \\fbox{ Pygmented ")
   tInsert(texCmd, codeType)
   tInsert(texCmd, " code for chunk ")
   tInsert(texCmd, sFormat("%d", curFile[baseName]))
   tInsert(texCmd, " of ")
-  --tInsert(texCmd, " sillyBaseName ")
   tInsert(texCmd, safeBaseName)
   tInsert(texCmd, " does not exist} \\par }}")
   texCmd = tConcat(texCmd, '')
