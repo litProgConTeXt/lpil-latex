@@ -43,6 +43,10 @@
 %
 % end info
 
+\defineframed
+  [nodeSmall]
+  [node]
+  [foregroundstyle=small]
 
 \startMPdefinitions
   def setupCDgrid(expr numX, dx, numY, dy, angle) =
@@ -363,10 +367,8 @@
     fi ;
     barAdjust := (0,0);
     if body = "-" :
-      message("Drawing simple body");
       draw anArrow bodyText allText ;
     elseif body = "=" :
-      message("Drawing equals body");
       barAdjust := 3*unitvector(direction 0 of anArrow);
       equalsShortenA := arctime 3*equalArrowShift of anArrow ;
       equalsShortenB := length(anArrow) - equalsShortenA ;
@@ -384,16 +386,12 @@
         bodyText allText ;
       interim ahlength := 2*ahlength;
     elseif body = "~" :
-      message("Drawing sinuous body");
       draw sinuousPath anArrow bodyText allText ;
     elseif body = "^" :
-      message("Drawing ziggy body");
       draw ziggyPath anArrow bodyText allText ;
     else :
-      message("Drawing default body");
       draw anArrow allText ;
     fi;
-    message("Finished drawing body");
     %
     if 0 < length(fromTails) :
       for i = 1 upto length(fromTails) :
