@@ -1,0 +1,558 @@
+% A ConTeXt MkIV module
+
+%C Copyright 2023 PerceptiSys Ltd (Stephen Gaito)
+%C
+%C Permission is hereby granted, free of charge, to any person
+%C obtaining a copy of this software and associated documentation
+%C files (the "Software"), to deal in the Software without
+%C restriction, including without limitation the rights to use,
+%C copy, modify, merge, publish, distribute, sublicense, and/or sell
+%C copies of the Software, and to permit persons to whom the
+%C Software is furnished to do so, subject to the following
+%C conditions:
+%C
+%C    The above copyright notice and this permission notice shall
+%C    be included in all copies or substantial portions of the
+%C    Software.
+%C
+%C THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+%C EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+%C OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+%C NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+%C HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+%C WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+%C FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+%C OTHER DEALINGS IN THE SOFTWARE.
+
+%D \module
+%D   [     file=t-commdiag,
+%D      version=2018.08.07,
+%D        title=\CONTEXT\ User module,
+%D     subtitle=Commutative Diagrams for \ConTeXt\,
+%D       author=Stephen Gaito,
+%D         date=\currentdate,
+%D    copyright=PerceptiSys Ltd (Stephen Gaito),
+%D        email=stephen@perceptisys.co.uk,
+%D      license=MIT License]
+
+% begin info
+%
+% title   : Commutative Diagrams for ConTeXt
+% comment : Provides structured document and code generation
+% status  : under development, mkiv only
+%
+% end info
+
+
+\startMPdefinitions
+  def setupCDgrid(expr numX, dx, numY, dy, angle) =
+    path p[];
+    for j = 0 upto numY :
+      p[j] := for i = 0 upto numX-1 : (i*dx,j*dy) .. endfor (numX*dx,j*dy);
+      if angle <> 0 :
+        p[j] := p[j] rotated angle ;
+      fi ;
+    endfor ;
+  enddef;
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% Arrow bodies
+
+    % The following squiggles are based on Thurston's answer to
+  %   "How to create a wavy lines with MetaPost?"
+  % see: https://tex.stackexchange.com/a/162406
+  %
+
+  % Be reasonable with these lengths. If you use `drawarrow`
+  % then you should ensure that sArrowlambda > ahlength
+
+  newinternal sArrowLambda, sArrowAngle;
+  sArrowLambda := 6;  % the length of the waves
+  sArrowAngle  := 45; % the angle of attack
+
+  vardef sinuousPath expr p =
+    save ut, numUT; numeric ut, numUT;
+    ut    := arctime sArrowLambda of p;
+    numUT := floor(length p / ut) ;
+    point 0 of p --
+    point ut of p {curl 0} ..
+      for i=2 step 2 until numUT-3:
+        point     i*ut of p
+          { (direction     i*ut of p) rotated +sArrowAngle } ..
+        point (i+1)*ut of p
+          { (direction (i+1)*ut of p) rotated -sArrowAngle } ..
+      endfor
+    { direction length p of p } point ((numUT-1)*ut) of p --
+    point length(p) of p
+  enddef;
+
+  newinternal z_lambda, z_amp;
+  zArrowLambda := 6;   % the length of the zig-zags
+  zArrowAmp    := 2.4; % the amplitude of each zig and zag
+
+  vardef ziggyPath expr p =
+    save ut, numUT; numeric ut, numUT;
+    ut    := arctime zArrowLambda of p;
+    numUT := floor(length p / ut) ;
+    point 0 of p -- point ut of p --
+      for i=2 step 2 until numUT-3:
+        point     i*ut of p +
+          zArrowAmp*up   rotated angle direction     i*ut of p --
+        point (i+1)*ut of p +
+          zArrowAmp*down rotated angle direction (i+1)*ut of p --
+      endfor
+    point (numUT-1)*ut of p -- point length p of p
+  enddef;
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% Arrow heads
+
+  % The following definitions are based on the definition of "arrowhead" in file
+  % tex/texmf/metapost/base/plain.mp in the ConTeXt experimental distribution.
+  % Taken on 10 August 2018.
+  % The file's header is:
+  %
+  %% % $Id: plain.mp,v 1.3 2005/04/28 06:45:21 taco Exp $
+  %% % Public domain.
+  %
+
+  %% control the SECOND arrow placement
+
+  newinternal sahFraction;
+  % default second arrowhead point 90% of arrow path
+  sahFraction := 0.9;
+
+  %% Forward arrow heads/tails ...
+
+  vardef firstArrowHead expr p =
+    save q,e; path q; pair e;
+    e := point length p of p;
+    q := gobble(
+      p shifted -e
+      cutafter makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    (
+      q rotated .5ahangle &
+      reverse q rotated -.5ahangle --
+      cycle
+    )  shifted e
+  enddef;
+
+  vardef secondArrowHead expr p =
+    save q, e; path q; pair e;
+    e := point (sahFraction*length p) of p;
+    q := gobble(
+      subpath (0, (sahFraction*length p)) of p shifted -e
+      cutafter makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    (
+      q rotated .5ahangle &
+      reverse q rotated -.5ahangle --
+      cycle
+    )  shifted e
+  enddef;
+
+  vardef firstArrowTail expr p =
+    save q,eA, eB; path q; pair eA, eB;
+    eA := point 0 of p;
+    q := gobble(
+      p shifted -eA
+      cutbefore makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    eB := point length(q) of q;
+    q := q shifted -eB ;
+    (
+      q rotated .5ahangle &
+      reverse q rotated -.5ahangle --
+      cycle
+    ) shifted (eA + eB)
+  enddef;
+
+  vardef secondArrowTail expr p =
+    save q,eA, eB, aFraction; path q;
+    pair eA, eB; numeric aFraction;
+    aFraction := 2*(1.0 - sahFraction);
+    eA := point (aFraction * length p) of p;
+    q := gobble(
+      subpath (0, (aFraction * length p)) of p shifted -eA
+      cutafter makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    eB := point length(q) of q;
+    q := q shifted -eB ;
+    (
+      q rotated .5ahangle &
+      reverse q rotated -.5ahangle --
+      cycle
+    ) shifted (eA + eB)
+  enddef;
+
+  %% Reversed arrow heads/tails ...
+
+  vardef firstReversedArrowHead expr p =
+    save q, eA, eB; path q; pair eA, eB;
+    eA := point length p of p;
+    q := gobble(
+      p shifted -eA
+      cutafter makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    eB := point 0 of q ;
+    q := q shifted -eB ;
+    (
+      reverse q rotated .5ahangle &
+      q rotated -.5ahangle --
+      cycle
+    ) shifted (eA + eB)
+  enddef;
+
+  vardef secondReversedArrowHead expr p =
+    save q, eA, eB; path q; pair eA, eB;
+    eA := point (sahFraction*length p) of p;
+    q := gobble(
+      subpath (0, (sahFraction*length p)) of p shifted -eA
+      cutafter makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    eB := point 0 of q ;
+    q := q shifted -eB ;
+    (
+      reverse q rotated .5ahangle &
+      q rotated -.5ahangle --
+      cycle
+    ) shifted (eA + eB)
+  enddef;
+
+  vardef firstReversedArrowTail expr p =
+    save q,eA, eB; path q; pair eA, eB;
+    eA := point 0 of p;
+    q := gobble(
+      p shifted -eA
+      cutbefore makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    (
+      reverse q rotated .5ahangle &
+      q rotated -.5ahangle --
+      cycle
+    ) shifted eA
+  enddef;
+
+  vardef secondReversedArrowTail expr p =
+    save q,eA, eB, aFraction; path q;
+    pair eA, eB; numeric aFraction;
+    aFraction := 2*(1.0 - sahFraction);
+    eA := point (aFraction * length p) of p;
+    q := gobble(
+      subpath (0, (aFraction * length p)) of p shifted -eA
+      cutafter makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    eB := point 0 of q;
+    q := q shifted -eB ;
+    (
+      reverse q rotated .5ahangle &
+      q rotated -.5ahangle --
+      cycle
+    ) shifted (eA + eB)
+  enddef;
+
+  %% Dot heads/tails ...
+
+  vardef dotHead expr p =
+    save q,eA,eB; path q; pair eA, eB;
+    eA := point length p of p;
+    eB :=
+      p shifted -eA
+      intersectionpoint makepath(pencircle scaled ahlength) ;
+    makepath(pencircle scaled ahlength) shifted (eA+eB)
+  enddef;
+
+  vardef dotTail expr p =
+    save q,eA,eB; path q; pair eA, eB;
+    eA := point 0 of p;
+    eB :=
+      p shifted -eA
+      intersectionpoint makepath(pencircle scaled ahlength) ;
+    makepath(pencircle scaled ahlength) shifted (eA+eB)
+  enddef;
+
+  %% Bar heads/tails ...
+
+  vardef barHead expr p =
+    save q,e; path q; pair e;
+    e := point length p of p;
+    q := gobble(
+      p shifted -e scaled 100
+      cutafter makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    (q rotated 90 & reverse q rotated 270) shifted e
+  enddef;
+
+  vardef barTail expr p =
+    save q,e; path q; pair e;
+    e := point 0 of p;
+    q := gobble(
+      p shifted -e scaled 100
+      cutbefore makepath(pencircle scaled 2ahlength)
+    ) cuttings;
+    (reverse q rotated 90 & q rotated 270) shifted e
+  enddef;
+
+  newinternal drawFilledArrows;
+  drawFilledArrows := 1;
+
+  newinternal equalArrowShift;
+  equalArrowShift := 1bp ;
+
+  vardef drawCDbaArrow@#
+    (expr arrowDecorations, deflection)
+    (suffix pPath)
+    (expr pTime)
+    (suffix qPath)
+    (expr qTime, bodyLabel)
+    (text bodyText)
+    (text arrowText)
+    text allText =
+    %
+    save anArrow;
+    save aTail, aHead;
+    save fromTails, body, toHeads;
+    save barAdjust;
+    save equalsShortenA, equalsShortenB;
+    save startBody, aChar;
+    %
+    path anArrow;
+    numeric aTail, aHead;
+    numeric equalsShortenA, equalsShortenB;
+    string fromTails, body, toHeads;
+    pair barAdjust;
+    numeric startBody, aChar;
+    %
+    anArrow := fromtopaths@#(deflection, pPath, pTime, qPath, qTime, bodyLabel) ;
+    if string(arrowDecorations) :
+      % we start by trying to identify the tail, body and head
+      % parts of the arrowDecorations...
+      startBody  := -1;
+      for i = 1 upto length(arrowDecorations) :
+        aChar := ASCII substring (i-1,i) of arrowDecorations ;
+        if aChar = 45 : % "-"
+          startBody := i;
+        elseif aChar = 61 : % "="
+          startBody := i;
+        elseif aChar = 126 : % "~"
+          startBody := i;
+        elseif aChar = 94 : % "^"
+          startBody := i;
+        fi ;
+      endfor ;
+      if 0 < startBody :
+        fromTails :=
+          substring (0, startBody-1)
+          of arrowDecorations ;
+        body      :=
+          substring (startBody-1, startBody)
+          of arrowDecorations ;
+        toHeads   :=
+          substring (startBody, length(arrowDecorations))
+          of arrowDecorations ;
+      else :
+        fromTails := "";
+        body      := "-";
+        toHeads   := arrowDecorations;
+      fi ;
+    else :
+      fromTails := "";
+      body      := "-";
+      toHeads   := ">";
+    fi ;
+    barAdjust := (0,0);
+    if body = "-" :
+      message("Drawing simple body");
+      draw anArrow bodyText allText ;
+    elseif body = "=" :
+      message("Drawing equals body");
+      barAdjust := 3*unitvector(direction 0 of anArrow);
+      equalsShortenA := arctime 3*equalArrowShift of anArrow ;
+      equalsShortenB := length(anArrow) - equalsShortenA ;
+      draw subpath (equalsShortenA, equalsShortenB) of anArrow
+        shifted (
+          equalArrowShift *
+          unitvector((direction 0 of anArrow) rotated 90)
+        )
+        bodyText allText ;
+      draw subpath (equalsShortenA, equalsShortenB) of anArrow
+        shifted (
+          -equalArrowShift *
+          unitvector((direction 0 of anArrow) rotated 90)
+        )
+        bodyText allText ;
+      interim ahlength := 2*ahlength;
+    elseif body = "~" :
+      message("Drawing sinuous body");
+      draw sinuousPath anArrow bodyText allText ;
+    elseif body = "^" :
+      message("Drawing ziggy body");
+      draw ziggyPath anArrow bodyText allText ;
+    else :
+      message("Drawing default body");
+      draw anArrow allText ;
+    fi;
+    message("Finished drawing body");
+    %
+    if 0 < length(fromTails) :
+      for i = 1 upto length(fromTails) :
+        aTail := ASCII (substring(i-1,i) of fromTails);
+        if aTail = 124 : % "|"
+          draw barTail anArrow
+            shifted barAdjust
+            arrowText allText ;
+        elseif aTail = 111 : % "o"
+          if drawFilledArrows = 1:
+            filldraw dotTail anArrow arrowText allText ;
+          else :
+            unfill dotTail anArrow arrowText allText ;
+            draw dotTail anArrow arrowText allText ;
+          fi;
+        elseif aTail = 62 : % ">"
+          if drawFilledArrows = 1:
+            filldraw firstArrowTail
+              anArrow arrowText allText ;
+          else :
+            unfill firstArrowTail
+              anArrow arrowText allText ;
+            draw firstArrowTail
+              anArrow arrowText allText ;
+          fi;
+        elseif aTail = 60 : % "<"
+          if drawFilledArrows = 1 :
+            filldraw firstReversedArrowTail
+              anArrow arrowText allText ;
+          else :
+            unfill firstReversedArrowTail
+              anArrow arrowText allText ;
+            draw firstReversedArrowTail
+              anArrow arrowText allText ;
+          fi;
+        elseif aTail = 93 : % "]"
+          if drawFilledArrows = 1 :
+            filldraw secondArrowTail
+              anArrow arrowText allText ;
+          else :
+            unfill secondArrowTail
+              anArrow arrowText allText ;
+            draw secondArrowTail
+              anArrow arrowText allText ;
+          fi;
+        elseif aTail = 91 : % "["
+          if drawFilledArrows = 1 :
+            filldraw secondReversedArrowTail
+              anArrow arrowText allText ;
+          else :
+            unfill secondReversedArrowTail
+              anArrow arrowText allText ;
+            draw secondReversedArrowTail
+              anArrow arrowText allText ;
+          fi;
+        fi ;
+      endfor ;
+    fi ;
+    %
+    if 0 < length(toHeads) :
+      for i = 1 upto length(toHeads) :
+        aHead := ASCII (substring(i-1,i) of toHeads);
+        if aHead = 124 : % "|"
+          draw barHead anArrow
+            shifted -barAdjust
+            arrowText allText ;
+        elseif aHead = 111 : % "o"
+          if drawFilledArrows = 1 :
+            filldraw dotHead anArrow
+              arrowText allText ;
+          else :
+            unfill dotHead anArrow
+              arrowText allText ;
+            draw dotHead anArrow
+              arrowText allText ;
+          fi;
+        elseif aHead = 62 : % ">"
+          if drawFilledArrows = 1 :
+            filldraw firstArrowHead
+              anArrow arrowText allText ;
+          else :
+            unfill firstArrowHead
+              anArrow arrowText allText ;
+            draw firstArrowHead
+              anArrow arrowText allText ;
+          fi;
+        elseif aHead = 60 : % "<"
+          if drawFilledArrows = 1 :
+            filldraw firstReversedArrowHead
+              anArrow arrowText allText ;
+          else :
+            unfill firstReversedArrowHead
+              anArrow arrowText allText ;
+            draw firstReversedArrowHead
+              anArrow arrowText allText ;
+          fi;
+        elseif aHead = 93 : % "]"
+          if drawFilledArrows = 1 :
+            filldraw secondArrowHead
+              anArrow arrowText allText ;
+          else :
+            unfill secondArrowHead
+              anArrow arrowText allText ;
+            draw secondArrowHead
+              anArrow arrowText allText ;
+          fi;
+        elseif aHead = 91 : % "["
+          if drawFilledArrows = 1 :
+            filldraw secondReversedArrowHead
+              anArrow arrowText allText ;
+          else :
+            unfill secondReversedArrowHead
+              anArrow arrowText allText ;
+            draw secondReversedArrowHead
+              anArrow arrowText allText ;
+          fi;
+        fi ;
+      endfor ;
+    fi ;
+  enddef;
+
+  vardef drawCDbArrow@#
+    (expr arrowDecorations, deflection)
+    (suffix pPath)
+    (expr pTime)
+    (suffix qPath)
+    (expr qTime, bodyLabel)
+    (text bodyText)
+    text allText =
+    drawCDbaArrow@#
+    (arrowDecorations, deflection, pPath, pTime, qPath, qTime, bodyLabel)
+    (bodyText)() allText
+  enddef;
+
+  vardef drawCDaArrow@#
+    (expr arrowDecorations, deflection)
+    (suffix pPath)
+    (expr pTime)
+    (suffix qPath)
+    (expr qTime, bodyLabel)
+    (text arrowText)
+    text allText =
+    drawCDbaArrow@#
+    (arrowDecorations, deflection, pPath, pTime, qPath, qTime, bodyLabel)
+    ()(arrowText) allText
+  enddef;
+
+  vardef drawCDarrow@#
+    (expr arrowDecorations, deflection)
+    (suffix pPath)
+    (expr pTime)
+    (suffix qPath)
+    (expr qTime, bodyLabel)
+    text allText =
+    drawCDbaArrow@#
+    (arrowDecorations, deflection, pPath, pTime, qPath, qTime, bodyLabel)
+    ()() allText
+  enddef;
+
+	def drawCDArrow = drawCDarrow enddef;
+
+\stopMPdefinitions
