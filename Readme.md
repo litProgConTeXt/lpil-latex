@@ -40,3 +40,10 @@ The `lpilBuild` environment should contain a number of `\requires` and
 `\creates` macros which together describe how to build a given computational
 artefact.
 
+## ConTeXt styles
+
+This repository only contains the LaTeX styles for the LPiL projects.
+
+The companion ConTeXt styles have been moved to the lpil-context
+repository under a license which is compatible with the ConTeXt's own
+license.

@@ -10,16 +10,7 @@ TEXMFLOCAL=`tlmgr conf | grep TEXMFLOCAL | cut -d= -f2`
 # LaTeX
 # Copy the current LaTeX version over to the local TEXMFLOCAL directory
 mkdir -p $TEXMFLOCAL/tex/latex
-cp -R latex/lpil $TEXMFLOCAL/tex/latex
+cp -R lpil $TEXMFLOCAL/tex/latex
 
 # Now we need to update TeXLive's file search database
 mktexlsr
-
-######################################################################
-# ConTeXt
-# Copy the current ConTeXt version over to the local TEXMFLOCAL directory
-mkdir -p $TEXMFLOCAL/tex/context/third
-cp -R context/commDiag $TEXMFLOCAL/tex/context/third
-
-# Now we update context's file search database
-context --generate

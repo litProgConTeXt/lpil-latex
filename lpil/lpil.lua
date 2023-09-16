@@ -6,6 +6,7 @@ local tRemove = table.remove
 local tConcat = table.concat
 local sSub    = string.sub
 local sGSub   = string.gsub
+local sUpper  = string.upper
 local sFormat = string.format
 
 require("lualibs-util-jsn")
@@ -17,7 +18,7 @@ local json    = utilities.json
 function lpilMod.initialize()
   local homeDir = os.getenv("HOME")
   lpilMod.config = dofile(homeDir..'/.config/cfdoit/config.lua')
-  
+
   lpilMod.latexDir = '.'
   if (lpilMod.config['build']) then
     if (lpilMod.config['build']['latexDir']) then
@@ -166,6 +167,8 @@ end
 function lpilMod.newCodeType(codeType, pygmentOpts)
   texio.write("\nnewCodeType("..codeType..","..pygmentOpts..")\n")
 
+  local CodeType = codeType:gsub("^%l", sUpper)
+
   addPygmentsOptions(codeType, pygmentOpts)
 
   texCmd = {}
@@ -174,8 +177,15 @@ function lpilMod.newCodeType(codeType, pygmentOpts)
   tInsert(texCmd, "}[1]{")
   tInsert(texCmd, "\\directlua{lpil.defineLoadPygmentedCode('")
   tInsert(texCmd, codeType)
-  tInsert(texCmd, "','#1')}\\begingroup\\filecontents[noheader,overwrite]\\pygmentedCodeFileName}")
+  tInsert(texCmd, "','#1','noCopy')}\\begingroup\\filecontents[noheader,overwrite]\\pygmentedCodeFileName}")
   tInsert(texCmd, "{\\endfilecontents\\endgroup\\loadPygmentedCode}")
+
+	tInsert(texCmd, "\\newcommand{\\loadLpil")
+	tInsert(texCmd, CodeType)
+	tInsert(texCmd, "Code}[1]{\\directlua{lpil.defineLoadPygmentedCode('")
+  tInsert(texCmd, codeType)
+  tInsert(texCmd, "', '#1','copy')}\\loadPygmentedCode}")
+
   texCmd = tConcat(texCmd, '')
   texio.write("\nnewCodeTypeCMD("..texCmd..")")
 
@@ -185,19 +195,17 @@ end
 
 local fileCounters = {}
 
-function lpilMod.defineLoadPygmentedCode(codeType, baseName)
-  texio.write("\ndefineLoadPygmentedCode("..codeType..","..baseName..")")
-
+local function computeCodeTypeFileNames(codeType, baseName)
   curFilePath = lpilMod.topInputFile()
   --texio.write("\ncurFilePath: "..curFilePath.."\n")
   -- need to change directory separators to a simple '.'
-  curFilePath = sGSub(curFilePath, '[%\\%/]', '.')
+  curFilePathKey = sGSub(curFilePath, '[%\\%/]', '.')
   --texio.write("\ncurFilePath: "..curFilePath.."\n")
 
   fileCounters[codeType] = fileCounters[codeType] or {}
   codeTypes = fileCounters[codeType]
-  codeTypes[curFilePath] = codeTypes[curFilePath] or {}
-  curFile = codeTypes[curFilePath]
+  codeTypes[curFilePathKey] = codeTypes[curFilePathKey] or {}
+  curFile = codeTypes[curFilePathKey]
   if curFile[baseName] == nil then
     curFile[baseName] = 1
   else
@@ -209,7 +217,7 @@ function lpilMod.defineLoadPygmentedCode(codeType, baseName)
   --tInsert(fileName, getSep())
   tInsert(writeFileName, baseName)
   tInsert(writeFileName, "-")
-  tInsert(writeFileName, curFilePath)
+  tInsert(writeFileName, curFilePathKey)
   tInsert(writeFileName, "-")
   tInsert(writeFileName, codeType)
   tInsert(writeFileName, "-c")
@@ -223,14 +231,61 @@ function lpilMod.defineLoadPygmentedCode(codeType, baseName)
   tInsert(readFileName, writeFileName)
   readFileName = tConcat(readFileName, '')
 
+  copyFileName = {}
+  curDirPath = getParentDir(curFilePath)
+  if curDirPath then
+		tInsert(copyFileName, curDirPath)
+		--tInsert(copyFileName, getSep())
+	end
+	tInsert(copyFileName, baseName)
+	copyFileName = tConcat(copyFileName, '')
+
+  -- make sure all required directories exist
+  mkdirs(readFileName)
+
+  return readFileName, writeFileName, copyFileName
+end
+
+local function copyPygmentedCode(copyFileName, readFileName)
+  texio.write("\ncopyPygmentedCode("..copyFileName..","..readFileName..")")
+
+  texio.write("\nreading from: ["..copyFileName.."]\n")
+  local inFile = io.open(copyFileName, "r")
+  if inFile then
+    local contents = inFile:read("a")
+    inFile:close()
+    if contents then
+      texio.write("\nwriting to: ["..readFileName..".out]\n")
+      local outFile = io.open(readFileName..".out", "w")
+      if outFile then
+        outFile:write(contents)
+        outFile:close()
+      else
+        texio.write("\ncould not write to: ["..readFileName..".out]\n")
+      end
+    else
+      texio.write("\nnothing read from: ["..copyFileName.."]\n")
+    end
+  else
+    texio.write("\ncould not read from: ["..copyFileName.."]\n")
+  end
+end
+
+function lpilMod.defineLoadPygmentedCode(codeType, baseName, shouldCopy)
+  texio.write("\ndefineLoadPygmentedCode("..codeType..","..baseName..","..shouldCopy..")")
+
+  local readFileName, writeFileName, copyFileName =
+    computeCodeTypeFileNames(codeType, baseName)
+
+  if shouldCopy == 'copy' then
+    copyPygmentedCode(copyFileName, readFileName)
+  end
+
   texio.write("\n  will load file: "..readFileName.."\n")
 
   safeBaseName = sGSub(baseName, "_", "\\_")
   texio.write("  safe baseName: ["..safeBaseName.."]\n")
-  
-  -- make sure all required directories exist
-  mkdirs(readFileName) 
-  
+
   lpilMod.addDependentFile(readFileName, 'pygments-'..codeType)
 
   texCmd = {}
