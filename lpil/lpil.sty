@@ -96,6 +96,12 @@
   \lpilPopInputFile
 }
 
+\def\lpilBibliography{
+  \IfFileExists{\latexBuildDir/\jobname.bbl}{
+    \lpilOrigInput{\latexBuildDir/\jobname.bbl}
+  }{\par\noindent\fbox{ Bibliography file does not yet exist}}
+  \directlua{lpil.addDependentFile('\latexBuildDir/\jobname.bbl', 'cmScan')}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\newCodeType}[2]{\directlua{lpil.newCodeType('#1','#2')}}
