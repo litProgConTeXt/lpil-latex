@@ -17,6 +17,13 @@
 % or have the user load this themselves...
 \RequirePackage{lpilsasPygments}
 
+\newif\ifplastex
+\plastexfalse
+
+\ifplastex
+  \RequirePackage{lpil_plastex}
+\fi
+
 \newtheorem{definition}{Definition}
 
 \newcommand{\stbFam}[1]{\ensuremath{\mathcal #1}}
