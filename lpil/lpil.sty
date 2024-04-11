@@ -20,9 +20,9 @@
 \newif\ifplastex
 \plastexfalse
 
-\ifplastex
-  \RequirePackage{lpil_plastex}
-\fi
+%\ifplastex
+%  \RequirePackage{lpil_plastex}
+%\fi
 
 \newtheorem{definition}{Definition}
 
@@ -73,8 +73,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % include LPiL metafun based graphics
 
+\newcommand{\lpilAddDependentFile}[2][tex]{
+  \directlua{lpil.addDependentFile('#2', '#1')}
+}
+
 \newcommand{\includeLpilDiagram}[1]{
-  \directlua{lpil.addDependentFile('\lpilCurrentDirectory#1', 'metaFun')}
+  \lpilAddDependentFile[metaFun]{\lpilCurrentDirectory#1}
   \includegraphics{\latexBuildDir/\lpilCurrentDirectory#1_v1_5}
 }
 
@@ -87,18 +91,20 @@
 \newcommand{\lpilCurrentFile}{\directlua{lpil.currentFile()}}
 \newcommand{\lpilCurrentDirectory}{\directlua{lpil.currentDirectory()}}
 
+\message{Before input redef}
 \let\lpilOrigInput=\input
 \def\input#1{
   \lpilPushInputFile{#1}
-  \directlua{lpil.addDependentFile('#1')}
+  \lpilAddDependentFile{#1}
   \lpilOrigInput{#1}
   \lpilPopInputFile
 }
+\message{After input redef}
 
 \let\lpilOrigInclude=\include
 \def\include#1{
   \lpilPushInputFile{#1}
-  \directlua{lpil.addDependentFile('#1')}
+  \lpilAddDependentFile{#1}
   \lpilOrigInclude{#1}
   \lpilPopInputFile
 }
@@ -107,7 +113,7 @@
   \IfFileExists{\latexBuildDir/\jobname.bbl}{
     \lpilOrigInput{\latexBuildDir/\jobname.bbl}
   }{\par\noindent\fbox{ Bibliography file does not yet exist}}
-  \directlua{lpil.addDependentFile('\latexBuildDir/\jobname.bbl', 'cmScan')}
+  \lpilAddDependentFile[cmScan]{\latexBuildDir/\jobname.bbl}}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
