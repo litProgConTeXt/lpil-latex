@@ -17,7 +17,7 @@ local json    = utilities.json
 
 function lpilMod.initialize()
   local homeDir = os.getenv("HOME")
-  lpilMod.config = dofile(homeDir..'/.config/cfdoit/config.lua')
+  lpilMod.config = dofile(homeDir..'/.config/lpil/config.lua')
 
   lpilMod.latexDir = '.'
   if (lpilMod.config['build']) then
@@ -222,7 +222,7 @@ local function computeCodeTypeFileNames(codeType, baseName)
   tInsert(writeFileName, codeType)
   tInsert(writeFileName, "-c")
   tInsert(writeFileName, sFormat("%05d", curFile[baseName]))
-  tInsert(writeFileName, ".pygmented")
+  tInsert(writeFileName, ".pygmented.tex")
   writeFileName = tConcat(writeFileName, '')
 
   readFileName = {}
@@ -291,12 +291,12 @@ function lpilMod.defineLoadPygmentedCode(codeType, baseName, shouldCopy)
   texCmd = {}
   tInsert(texCmd, "\\def\\pygmentedCodeFileName{")
   tInsert(texCmd, writeFileName)
-  tInsert(texCmd, ".tex.out}")
+  tInsert(texCmd, ".out}")
   tInsert(texCmd, "\\def\\loadPygmentedCode{\\IfFileExists{")
   tInsert(texCmd, readFileName)
-  tInsert(texCmd, ".tex}{\\lpilOrigInput{")
+  tInsert(texCmd, "}{\\lpilOrigInput{")
   tInsert(texCmd, readFileName)
-  tInsert(texCmd, ".tex}}{\\par \\noindent \\fbox{ Pygmented ")
+  tInsert(texCmd, "}}{\\par \\noindent \\fbox{ Pygmented ")
   tInsert(texCmd, codeType)
   tInsert(texCmd, " code for chunk ")
   tInsert(texCmd, sFormat("%d", curFile[baseName]))
