@@ -49,6 +49,7 @@
     \ifthenelse{\equal{\lpilSectionType}{title}}{
       \title{#2}\label{\lpilLabelID}
       \def\lpilShortTitle{#2}
+      \ifplastex\chapter{#1}\label{\lpilLabelID}\fi
     }{
       \csname \lpilSectionType \endcsname {#2}\label{\lpilLabelID}
     }
@@ -56,6 +57,7 @@
     \ifthenelse{\equal{\lpilSectionType}{title}}{
       \title{#2}\label{\lpilLabelID}
       \def\lpilShortTitle{#1}
+      \ifplastex\chapter[#1]{#2}\label{\lpilLabelID}\fi
     }{
       \csname \lpilSectionType \endcsname [#1]{#2}\label{\lpilLabelID}
     }
