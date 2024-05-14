@@ -39,6 +39,10 @@
 \directlua{lpil.initialize()}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% set the chapter number
+%\setcounter{chapter}{\lpilChapterNumber}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % track the document structure the LPiL way
 \newcommand{\lpilStoreSection}[2]{
   \def\lpilSectionType{#1}\def\lpilLabelID{#2}
