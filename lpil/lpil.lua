@@ -33,17 +33,6 @@ function lpilMod.initialize()
     tex.print("\\def\\latexBuildDir{.}")
   end
   texio.write("\nJobname = "..tex.jobname.."\n")
-  chapterNum = 0
-  if (lpilMod.config['docs']) then
-    for i, aName in ipairs(lpilMod.config['docs']) do
-      if (aName == tex.jobname) then
-        chapterNum = i
-        break
-      end
-    end
-  end
-  texio.write("\nChapter number = "..chapterNum.."\n")
-  tex.print("\\def\\lpilChapterNumber{chapterNum}")
 end
 
 -------------------------------------------------------------------------
