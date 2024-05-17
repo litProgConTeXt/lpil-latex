@@ -54,7 +54,7 @@
   \typeout{LPiL section cmd: type[\lpilSectionType] label[\lpilLabelID] short[#1] long[#2]}
   \ifthenelse{\equal{#1}{}}{
     \ifthenelse{\equal{\lpilSectionType}{title}}{
-      \title{#2}\label{\lpilLabelID}
+      \title{#2}
       \def\lpilShortTitle{#2}
       \chapter{#1}\label{\lpilLabelID}
     }{
@@ -62,7 +62,7 @@
     }
   }{
     \ifthenelse{\equal{\lpilSectionType}{title}}{
-      \title{#2}\label{\lpilLabelID}
+      \title{#2}
       \def\lpilShortTitle{#1}
       \chapter[#1]{#2}\label{\lpilLabelID}
     }{
